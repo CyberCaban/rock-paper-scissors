@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+        #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
+
+        #messages {
+            display: flex;
+            flex-direction: column;
+            padding-left: 20px;
+            width: 180px;
+            height: 220px;
+            max-width: 180px;
+            overflow: scroll;
+            overflow-x: hidden;
+            border: 1px black solid;
+        }
+    </style>
+</head>
+    <body>
+        <p>Join room</p>
+        <form id="joinRoom">
+            <input id="roomID">
+        </form>
+
+        <p>Your room: <span id="current_room"></span></p>
+
+        <ul id="messages"></ul>
+        <form id="message_form"><input id="message_input"></form>
+
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            let socket = io();
+
+            let roomJoin = document.getElementById('joinRoom');
+            let inputRoomId = document.getElementById('roomID')
+            let current_room = document.getElementById('current_room')
+
+            let message_form = document.getElementById('message_form')
+            let message_input = document.getElementById('message_input')
+            let messages = document.getElementById('messages')
+
+            let messageArray = []
+
+            //присоединиться к комнате
+            roomJoin.addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (inputRoomId.value) {
+                    socket.emit('join room', inputRoomId.value);
+                    inputRoomId.value = '';
+                }
+            });
+            //получение id комнаты юзером
+            socket.on('current room', function(roomID) {
+                current_room.innerText = roomID
+            });
+
+            //отправка сообщений
+            message_form.addEventListener('submit', function(e){
+                e.preventDefault()
+                if (message_input.value) {
+                    socket.emit('send message', message_input.value);
+                    message_input.value = '';
+                }
+            })
+            //получение сообщений
+            socket.on('getMessage', function(message){
+                messageArray.push(message)
+                console.log(messageArray);
+                messages.append(message)
+            })
+        </script>
+    </body>
+</html>
