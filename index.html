@@ -3,24 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-
-        #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
-
-        #messages {
-            display: flex;
-            flex-direction: column;
-            padding-left: 20px;
-            width: 180px;
-            height: 220px;
-            max-width: 180px;
-            overflow: scroll;
-            overflow-x: hidden;
-            border: 1px black solid;
-        }
-    </style>
+    <link rel="stylesheet" href="./style.css">
 </head>
     <body>
         <p>Join room</p>
@@ -28,7 +11,8 @@
             <input id="roomID">
         </form>
 
-        <p>Your room: <span id="current_room"></span></p>
+        <p>Your ID: <span id="user_id" onclick="copyToClipboardID()"></span></p>
+        <p>Your room: <span id="current_room" onclick="copyToClipboardRoom()"></span></p>
 
         <ul id="messages"></ul>
         <form id="message_form"><input id="message_input"></form>
@@ -45,8 +29,21 @@
             let message_form = document.getElementById('message_form')
             let message_input = document.getElementById('message_input')
             let messages = document.getElementById('messages')
+            let user_id = document.getElementById('user_id')
 
             let messageArray = []
+
+            function copyToClipboardRoom() {
+                navigator.clipboard.writeText(current_room.textContent)
+            }
+            function copyToClipboardID() {
+                navigator.clipboard.writeText(user_id.textContent)
+            }
+
+            socket.on('send user id', function (socketID) {
+                user_id.textContent = socketID
+                console.log(socketID)
+            })
 
             //присоединиться к комнате
             roomJoin.addEventListener('submit', function(e) {
@@ -56,6 +53,7 @@
                     inputRoomId.value = '';
                 }
             });
+
             //получение id комнаты юзером
             socket.on('current room', function(roomID) {
                 current_room.innerText = roomID
@@ -69,12 +67,24 @@
                     message_input.value = '';
                 }
             })
+
             //получение сообщений
             socket.on('getMessage', function(message){
                 messageArray.push(message)
-                console.log(messageArray);
-                messages.append(message)
+                render()
             })
+
+            function render() {
+                messages.innerHTML = ''
+                messageArray.forEach(item=>{
+                    messages.insertAdjacentHTML('beforeend', `<span>${item}</span>`)
+                })
+                messages.scrollTop = messages.scrollHeight
+
+                user_id.textContent = socket.id
+            }
+
+            render()
         </script>
     </body>
 </html>
