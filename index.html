@@ -6,16 +6,32 @@
     <link rel="stylesheet" href="./style.css">
 </head>
     <body>
-        <p>Join room</p>
-        <form id="joinRoom">
-            <input id="roomID">
-        </form>
-
-        <p>Your ID: <span id="user_id" onclick="copyToClipboardID()"></span></p>
-        <p>Your room: <span id="current_room" onclick="copyToClipboardRoom()"></span></p>
-
-        <ul id="messages"></ul>
-        <form id="message_form"><input id="message_input"></form>
+        <div class="main">
+            <div class="messenger">
+                <p>Join room</p>
+                <form id="joinRoom">
+                    <input id="roomID">
+                </form>
+        
+                <p>Your ID: <span id="user_id" onclick="copyToClipboardID()"></span></p>
+                <p>Your room: <span id="current_room" onclick="copyToClipboardRoom()"></span></p>
+        
+                <ul id="messages"></ul>
+                <form id="message_form"><input id="message_input"></form>
+            </div>
+    
+            <div class="field">
+                <button id="fight_button">FIGHT!</button>
+                <div id="current_img">
+                    <img src="" alt="">
+                </div>
+                <div class="choose">
+                    <button id="rock_button">ROCK</button>
+                    <button id="paper_button">PAPER</button>
+                    <button id="scissors_button">SCISSORS</button>
+                </div>
+            </div>
+        </div>
 
 
         <script src="/socket.io/socket.io.js"></script>
@@ -33,11 +49,43 @@
 
             let messageArray = []
 
+            let rock_button = document.getElementById('rock_button')
+            let paper_button = document.getElementById('paper_button')
+            let scissors_button = document.getElementById('scissors_button')
+            let fight_button = document.getElementById('fight_button')
+            let current_img = document.getElementById('current_img')
+
+            let current_element_state = ''
+
+
+            //замена картинки и изменение стейта
+            rock_button.addEventListener('click', ()=>{
+                current_element_state = 'rock'
+                current_img.innerHTML = `<img src="/img/rock.png" alt="">`
+            })
+            paper_button.addEventListener('click', ()=>{
+                current_element_state = 'paper'
+                current_img.innerHTML = `<img src="/img/paper.png" alt="">`
+            })
+            scissors_button.addEventListener('click', ()=>{
+                current_element_state = 'scissors'
+                current_img.innerHTML = `<img src="/img/scissors.png" alt="">`
+            })
+
+            fight_button.addEventListener('click',()=>{
+                //отправлять объект с ид и стейтом чтобы потом сравнить на сервере и отправить обратно
+                socket.emit('player_current_element', current_element_state)
+                // socket.emit('send message', current_element_state)
+            })
+
+
             function copyToClipboardRoom() {
                 navigator.clipboard.writeText(current_room.textContent)
+                alert('Copied to clipboard')
             }
             function copyToClipboardID() {
                 navigator.clipboard.writeText(user_id.textContent)
+                alert('Copied to clipboard')
             }
 
             socket.on('send user id', function (socketID) {
@@ -47,18 +95,16 @@
 
             //присоединиться к комнате
             roomJoin.addEventListener('submit', function(e) {
+                messageArray = []
                 e.preventDefault();
                 if (inputRoomId.value) {
                     socket.emit('join room', inputRoomId.value);
+                    current_room.innerText = inputRoomId.value
                     inputRoomId.value = '';
                 }
             });
 
-            //получение id комнаты юзером
-            socket.on('current room', function(roomID) {
-                current_room.innerText = roomID
-            });
-
+        
             //отправка сообщений
             message_form.addEventListener('submit', function(e){
                 e.preventDefault()

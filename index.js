@@ -18,13 +18,25 @@ io.on('connection', (socket) => {
 
     //присоединяем юзера к комнате
     socket.on('join room', (roomID)=>{
+        let elementArray = []
         room = roomID
         socket.join(roomID);
+        
+        socket.on('player_current_element', (current_element)=>{
+            elementArray.push(current_element)
+            if (elementArray.length == 2) {
+                let player1_elem = elementArray[0]
+                let player2_elem = elementArray[1]
+                
+                if (player1_elem == player2_elem) {
+                    io.in(room).emit(send)
+                }
+                
+            }
+        })
 
-        //отправка ID комнаты юзеру
-        io.emit('current room', roomID)
-        console.log(roomID)
-        console.log(socket.id)
+        // console.log(roomID)
+        // console.log(socket.id)
     })
 
     //получение сообщения сервером и отправка их юзеру
